@@ -195,7 +195,7 @@ final class AnnotationTests: XCTestCase {
     }
 
     func testDecodesWindowsJSON() throws {
-        let json = #"{"id":"pen_lq3k2a1b_x7k2m9","type":"pen","pageNumber":1,"createdAt":1700000000000,"points":[{"x":1,"y":2},{"x":3,"y":4}],"color":"#000000","width":2,"opacity":1,"penType":"pencil"}"#
+        let json = ##"{"id":"pen_lq3k2a1b_x7k2m9","type":"pen","pageNumber":1,"createdAt":1700000000000,"points":[{"x":1,"y":2},{"x":3,"y":4}],"color":"#000000","width":2,"opacity":1,"penType":"pencil"}"##
         let a = try JSONDecoder().decode(Annotation.self, from: Data(json.utf8))
         XCTAssertEqual(a.type, .pen)
         XCTAssertEqual(a.penType, .pencil)
