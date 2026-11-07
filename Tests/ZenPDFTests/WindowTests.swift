@@ -25,7 +25,7 @@ final class WindowTests: XCTestCase {
         model.open(fileURL, silent: true)
         XCTAssertTrue(model.isPDF)
 
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1200, height: 860),
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 700),
                           styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: ContentView(model: model))
@@ -127,8 +127,8 @@ final class WindowTests: XCTestCase {
 
         // Text: click, type, Return.
         model.activeTool = .text
-        mouse(.leftMouseDown, windowPoint(first, 100, 600))
-        mouse(.leftMouseUp, windowPoint(first, 100, 600))
+        mouse(.leftMouseDown, windowPoint(first, 100, 530))
+        mouse(.leftMouseUp, windowPoint(first, 100, 530))
         spin(0.1)
         let editor = try XCTUnwrap(find(AnnotationTextView.self).first, "no text editor opened")
         editor.insertText("Hello from the Mac", replacementRange: NSRange(location: NSNotFound, length: 0))
@@ -163,11 +163,11 @@ final class WindowTests: XCTestCase {
     func testSelectMoveAndDelete() throws {
         let first = try page(1)
         model.activeTool = .rect
-        drag(first, [(300, 600), (400, 660)])
+        drag(first, [(300, 380), (400, 440)])
         let rect = try XCTUnwrap(model.annotations.last)
 
         model.activeTool = .select
-        drag(first, [(300, 630), (330, 650), (350, 670)])
+        drag(first, [(300, 410), (330, 430), (350, 450)])
         XCTAssertEqual(model.selectedID, rect.id)
         let moved = try XCTUnwrap(model.annotations.first { $0.id == rect.id })
         XCTAssertEqual(moved.x, rect.x + 50, accuracy: 0.5)
@@ -191,7 +191,7 @@ final class WindowTests: XCTestCase {
         let first = try page(1)
         model.activeTool = .cite
         spin(0.5) // the citation panel opens and the page moves
-        drag(first, [(60, 600), (300, 640)])
+        drag(first, [(60, 360), (300, 400)])
         let cite = try XCTUnwrap(model.annotations.last)
         XCTAssertEqual(cite.type, .cite)
         XCTAssertEqual(model.selectedID, cite.id)
