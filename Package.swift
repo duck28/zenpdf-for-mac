@@ -12,7 +12,8 @@ let package = Package(
         .testTarget(
             name: "ZenPDFTests",
             dependencies: ["ZenPDF"],
-            path: "Tests/ZenPDFTests"
+            path: "Tests/ZenPDFTests",
+            resources: [.copy("Fixtures")]
         ),
     ]
 )

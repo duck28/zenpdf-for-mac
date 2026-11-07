@@ -359,7 +359,7 @@ enum PDFFormat {
             a.border = border(0)
             a.interiorColor = color.withAlphaComponent(0.12)
             _ = a.setValue("Citation \(citeNumbers[ann.id].map(String.init) ?? "")"
-                .trimmingCharacters(in: .whitespaces), forAnnotationKey: .subject)
+                .trimmingCharacters(in: .whitespaces), forAnnotationKey: PDFAnnotationKey(rawValue: "/Subj"))
         case .line, .arrow, .measure:
             a.color = color
             a.border = border(ann.strokeWidth)

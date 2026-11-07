@@ -91,6 +91,34 @@ final class PDFFormatTests: XCTestCase {
         }
     }
 
+    /// Fixtures/windows-saved.pdf was written by ZenPDF for Windows (saveAnnotationsToPdf in
+    /// src/utils/pdfAnnotations.ts), with the annotations in windows-saved.json.
+    func testOpensFilesSavedOnWindows() throws {
+        let pdfURL = try XCTUnwrap(Bundle.module.url(forResource: "windows-saved", withExtension: "pdf", subdirectory: "Fixtures"))
+        let jsonURL = try XCTUnwrap(Bundle.module.url(forResource: "windows-saved", withExtension: "json", subdirectory: "Fixtures"))
+        let expected = try JSONDecoder().decode([Annotation].self, from: Data(contentsOf: jsonURL))
+        let loaded = try PDFFormat.load(Data(contentsOf: pdfURL))
+        XCTAssertEqual(loaded.annotations.count, expected.count)
+        for annotation in expected {
+            XCTAssertEqual(loaded.annotations.first { $0.id == annotation.id }, annotation, annotation.id)
+        }
+        XCTAssertEqual(loaded.source?.title, "Windows Fixture")
+        XCTAssertEqual(loaded.source?.author, "Doe, Jane")
+        for i in 0..<loaded.document.pageCount {
+            XCTAssertTrue(loaded.document.page(at: i)!.annotations.isEmpty, "page \(i + 1) still has ZenPDF annotations")
+        }
+    }
+
+    /// Writes a file saved by the Mac app for the Windows side of the compatibility check (see README).
+    func testWritesMacFixture() throws {
+        guard let path = ProcessInfo.processInfo.environment["ZENPDF_MAC_FIXTURE"] else { throw XCTSkip("Set ZENPDF_MAC_FIXTURE") }
+        let annotations = sampleAnnotations()
+        let saved = try PDFFormat.save(try PDFFormat.load(blankPDF()).document, annotations: annotations,
+                                       source: DocumentSource(author: "Doe, Jane", title: "Mac Fixture", year: "2025"))
+        try saved.data.write(to: URL(fileURLWithPath: path))
+        try JSONEncoder().encode(annotations).write(to: URL(fileURLWithPath: path + ".json"))
+    }
+
     func testSavingTwiceDoesNotDuplicate() throws {
         let first = try PDFFormat.save(try PDFFormat.load(blankPDF()).document, annotations: sampleAnnotations(), source: nil)
         let again = try PDFFormat.load(first.data)
