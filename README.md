@@ -79,7 +79,7 @@ This builds the app for Apple silicon at `build/ZenPDF.app` and a disk image at 
 
 - `./build.sh debug` builds a debug app without the disk image.
 - `swift test` runs the unit tests. They save and reopen annotations through PDFKit, and open `Tests/ZenPDFTests/Fixtures/windows-saved.pdf`, a file saved by ZenPDF for Windows.
-- The [build workflow](.github/workflows/build.yml) builds and tests every push to `main` and every pull request. It also uploads `mac-saved-fixture`, a PDF saved by this app, for checking the other direction with the Windows code.
+- The [build workflow](.github/workflows/build.yml) builds and tests every push to `main` and every pull request. `WindowTests` drive the real window with mouse and key events; the workflow uploads pictures of it and `mac-saved.pdf`, a PDF saved by this app, for checking the other direction with the Windows code.
 
 ## Releasing
 

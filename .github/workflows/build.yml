@@ -17,10 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unit tests
+      # Includes WindowTests, which drive the real window with mouse and key events.
+      - name: Tests
         run: swift test
         env:
           ZENPDF_MAC_FIXTURE: ${{ runner.temp }}/mac-saved.pdf
+          ZENPDF_SNAPSHOTS: ${{ runner.temp }}/snapshots
 
       - name: Build ZenPDF.app and ZenPDF.dmg
         run: ./build.sh
@@ -30,8 +32,12 @@ jobs:
           name: ZenPDF-mac
           path: build/ZenPDF.dmg
 
-      # A PDF saved by the Mac app, for checking that ZenPDF for Windows opens it.
+      # Pictures of the window from WindowTests, and a PDF saved by the Mac app for checking that
+      # ZenPDF for Windows opens it.
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: mac-saved-fixture
-          path: ${{ runner.temp }}/mac-saved.pdf*
+          name: test-output
+          path: |
+            ${{ runner.temp }}/snapshots/
+            ${{ runner.temp }}/mac-saved.pdf*
