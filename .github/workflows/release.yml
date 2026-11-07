@@ -1,11 +1,20 @@
 # Builds ZenPDF for Mac when a version tag (v1.2.3) is pushed, attests the disk image
 # (build provenance), and creates a draft GitHub release to review and publish.
+#
+# Run it by hand with a tag (Actions › Release › Run workflow) to rebuild the branch you pick under that
+# same version and replace the disk image on the existing release, e.g. for a fix that shouldn't
+# change the version number.
 name: Release
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release to update (e.g. v1.0.0)"
+        required: true
 
 permissions: {}
 
@@ -16,16 +25,18 @@ jobs:
       contents: write
       id-token: write
       attestations: write
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Check tag matches app version
         id: version
         run: |
-          tag="${GITHUB_REF_NAME#v}"
+          tag="${TAG#v}"
           version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)"
           if [ "$tag" != "$version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match CFBundleShortVersionString $version in Resources/Info.plist"
+            echo "::error::Tag $TAG does not match CFBundleShortVersionString $version in Resources/Info.plist"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -47,12 +58,21 @@ jobs:
           subject-path: build/ZenPDF-${{ steps.version.outputs.version }}-mac-arm64.dmg
 
       - name: Create draft release
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
+          gh release create "$TAG" \
             --title "ZenPDF for Mac ${{ steps.version.outputs.version }}" \
             --draft \
             --verify-tag \
             --generate-notes \
+            "build/ZenPDF-${{ steps.version.outputs.version }}-mac-arm64.dmg"
+
+      - name: Replace the disk image on the existing release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
             "build/ZenPDF-${{ steps.version.outputs.version }}-mac-arm64.dmg"
