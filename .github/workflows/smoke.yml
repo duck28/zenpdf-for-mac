@@ -26,10 +26,33 @@ jobs:
           count() { LC_ALL=C grep -a -o -E '/ZenPDF[^A-Za-z]' "$RUNNER_TEMP/doc.pdf" | wc -l | tr -d ' '; }
           before=$(count)
 
-          open -a "$PWD/build/ZenPDF.app" --stdout "$PWD/shots/stdout.log" --stderr "$PWD/shots/stderr.log" "$RUNNER_TEMP/doc.pdf"
-          sleep 10
+          cat > "$RUNNER_TEMP/windows.swift" <<'SWIFT'
+          import CoreGraphics
+          let all = CGWindowListCopyWindowInfo([.optionAll], kCGNullWindowID) as? [[String: Any]] ?? []
+          for w in all where (w[kCGWindowOwnerName as String] as? String) == "ZenPDF" {
+              print("window", w[kCGWindowName as String] ?? "-", w[kCGWindowBounds as String] ?? "-",
+                    "onscreen:", w[kCGWindowIsOnscreen as String] ?? false, "layer:", w[kCGWindowLayer as String] ?? "-")
+          }
+          SWIFT
+          diagnose() {
+            swift "$RUNNER_TEMP/windows.swift" | tee "shots/windows-$1.txt" || true
+            sample ZenPDF 1 -file "shots/sample-$1.txt" >/dev/null 2>&1 || true
+            grep -A40 "Thread_.*DispatchQueue_1: com.apple.main-thread" "shots/sample-$1.txt" | head -60 || true
+          }
+
+          # Launch without a file: the welcome window.
+          open -a "$PWD/build/ZenPDF.app" --stdout "$PWD/shots/stdout.log" --stderr "$PWD/shots/stderr.log"
+          sleep 8
+          pgrep -x ZenPDF
+          screencapture -x shots/0-launched.png
+          diagnose launch
+
+          # Then open the PDF in the running app.
+          open -a "$PWD/build/ZenPDF.app" "$RUNNER_TEMP/doc.pdf"
+          sleep 8
           pgrep -x ZenPDF
           screencapture -x shots/1-opened.png
+          diagnose opened
 
           bounds=$(osascript -e 'tell application "System Events" to tell process "ZenPDF" to get {position, size} of window 1' || true)
           echo "window: $bounds"
