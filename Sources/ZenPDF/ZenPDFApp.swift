@@ -7,18 +7,23 @@ struct ZenPDFApp: App {
     @State private var model = DocumentModel()
 
     var body: some Scene {
-        Window("ZenPDF", id: "main") {
+        // One window. Files opened from Finder or the Dock arrive through onOpenURL; SwiftUI opens the window for
+        // them at launch, and handlesExternalEvents sends later ones to the existing window instead of a new one.
+        WindowGroup("ZenPDF", id: "main") {
             ContentView(model: model)
                 .onAppear {
                     appDelegate.model = model
                     model.appearance.apply()
-                    if let url = appDelegate.pendingURL {
-                        appDelegate.pendingURL = nil
-                        model.open(url)
-                    } else {
+                    // Give a file the app was launched with a moment to arrive before reopening last session's.
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(300))
                         model.restoreSession()
                     }
                 }
+                .onOpenURL { url in
+                    if FileKind(url: url) != nil { model.open(url) }
+                }
+                .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
         }
         .defaultSize(width: 1280, height: 840)
         .commands { ZenCommands(model: model) }
@@ -27,15 +32,8 @@ struct ZenPDFApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     weak var model: DocumentModel?
-    /// A file opened from Finder before the window was ready.
-    var pendingURL: URL?
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
-
-    @MainActor func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first(where: { FileKind(url: $0) != nil }) else { return }
-        if let model { model.open(url) } else { pendingURL = url }
-    }
 
     @MainActor func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let model else { return .terminateNow }

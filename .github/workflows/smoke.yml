@@ -34,7 +34,8 @@ jobs:
           bounds=$(osascript -e 'tell application "System Events" to tell process "ZenPDF" to get {position, size} of window 1' || true)
           echo "window: $bounds"
           IFS=', ' read -r wx wy ww wh <<< "$bounds"
-          cx=$(( ${wx:-0} + ${ww:-1280} / 2 + 120 )); cy=$(( ${wy:-0} + ${wh:-840} / 2 ))
+          # Without the window bounds, aim at the page on the 1024×768 runner screen.
+          cx=$(( ${wx:-0} + ${ww:-1024} / 2 + 120 )); cy=$(( ${wy:-0} + ${wh:-740} / 2 ))
 
           # Pen tool (P), then drag across the page.
           cliclick "c:$cx,$cy" "kp:esc" "t:p" "dd:$cx,$cy" "dm:$((cx+60)),$((cy+20))" "dm:$((cx+120)),$((cy-10))" "du:$((cx+180)),$((cy+15))"
