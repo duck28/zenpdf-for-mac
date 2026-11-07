@@ -48,7 +48,7 @@ struct ToolDock: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
-        .glassSurface(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .solidGlassSurface(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func tool(_ tool: ToolType, _ symbol: String, _ help: String) -> some View {

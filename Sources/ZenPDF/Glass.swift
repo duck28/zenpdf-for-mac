@@ -28,6 +28,12 @@ extension View {
         #endif
     }
 
+    /// Glass with a mostly opaque paper fill, for controls that float over the page and must stay readable.
+    func solidGlassSurface<S: InsettableShape>(in shape: S, opacity: Double = 0.92) -> some View {
+        background(shape.fill(Color.zenSurface.opacity(opacity)))
+            .glassSurface(in: shape)
+    }
+
     /// Puts this view on a capsule-shaped glass surface.
     func glassSurface(tint: Color? = nil, interactive: Bool = false) -> some View {
         glassSurface(in: Capsule(), tint: tint, interactive: interactive)

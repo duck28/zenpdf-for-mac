@@ -43,7 +43,7 @@ struct TextDocumentView: View {
                     }
                 }
                 .padding(4)
-                .glassSurface(in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .solidGlassSurface(in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .padding(.top, 10)
             }
 
