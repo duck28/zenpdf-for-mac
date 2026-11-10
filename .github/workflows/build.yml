@@ -27,14 +27,14 @@ jobs:
       - name: Build ZenPDF.app and ZenPDF.dmg
         run: ./build.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ZenPDF-mac
           path: build/ZenPDF.dmg
 
       # Pictures of the window from WindowTests, and a PDF saved by the Mac app for checking that
       # ZenPDF for Windows opens it.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-output
